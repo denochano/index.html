@@ -17,6 +17,8 @@
   --app-font: 'Segoe UI', system-ui, sans-serif;
 }
 
+* { box-sizing: border-box; }
+
 body {
   margin: 0; padding: 0;
   font-family: var(--app-font);
@@ -24,13 +26,13 @@ body {
   background-size: cover;
   background-position: center;
   color: var(--text-color);
-  height: 100vh; height: -webkit-fill-available;
+  height: 100dvh; /* Dinamik viewport height: Safari çubuklarını hesaba katar */
   overflow: hidden;
 }
 
 .overlay {
   background: rgba(0, 0, 0, 0.3);
-  height: 100%; width: 100vw;
+  height: 100dvh;
   display: flex; flex-direction: column;
 }
 
@@ -39,99 +41,92 @@ header {
   display: flex; justify-content: space-between; align-items: center;
   background: rgba(0,0,0,0.7); backdrop-filter: blur(25px);
   z-index: 1000;
+  flex-shrink: 0;
+}
+
+/* TAKVİMİN EKRANA TAM FIT OLMASI İÇİN ANA YAPI */
+.calendar-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 5px;
 }
 
 #calendar {
   display: grid; 
   grid-template-columns: repeat(7, 1fr);
-  grid-auto-rows: minmax(90px, 1fr);
-  gap: 8px;
-  flex-grow: 1;
-  padding: 15px; /* Biraz daha boşluk bıraktım büyüme için */
-  overflow-y: auto;
+  grid-template-rows: repeat(6, 1fr); /* 6 satırı ekrana tam böler */
+  gap: 5px;
+  height: 100%;
+  width: 100%;
 }
 
 .day {
   background: var(--glass-bg); 
   backdrop-filter: blur(var(--glass-blur));
   border: 1px solid rgba(255,255,255,0.1); 
-  border-radius: 12px;
-  padding: 6px; 
+  border-radius: 10px;
+  padding: 4px; 
   cursor: pointer; 
   display: flex; 
   flex-direction: column; 
   position: relative;
-  /* Animasyon ayarı: Daha belirgin ve akıcı */
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
-              box-shadow 0.4s ease, 
-              background 0.3s ease, 
-              border 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
   z-index: 1;
   transform: scale(1);
+  overflow: hidden;
 }
 
-/* TIKLANDIĞINDA DEV BÜYÜME EFEKTİ */
 .day.selected { 
-  border: 3px solid white; 
-  background: rgba(255,255,255,0.45);
-  transform: scale(1.25); /* %25 oranında büyüme */
-  z-index: 500; /* Kesinlikle en üstte */
-  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  border: 2px solid white; 
+  background: rgba(255,255,255,0.4);
+  transform: scale(1.15); /* %25 çok fazlaydı, %15 daha güvenli fit olur */
+  z-index: 500;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .day-header {
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.85rem;
   text-align: right;
-  margin-bottom: 4px;
 }
 
 .event-container {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  overflow: hidden;
+  display: flex; flex-direction: column; gap: 2px;
+  overflow: hidden; margin-top: 2px;
 }
 
 .inner-event {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   background: rgba(0,0,0,0.3);
-  padding: 2px 4px;
-  border-radius: 4px;
+  padding: 1px 3px;
+  border-radius: 3px;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
-  display: block;
-}
-
-.inner-event.completed {
-  opacity: 0.4;
-  text-decoration: line-through;
+  overflow: hidden;
 }
 
 .bottom-panel {
   background: rgba(0, 0, 0, 0.95); 
   backdrop-filter: blur(30px);
-  padding: 15px 15px calc(env(safe-area-inset-bottom) + 10px) 15px;
+  padding: 10px 15px calc(env(safe-area-inset-bottom) + 10px) 15px;
+  flex-shrink: 0;
   z-index: 1000;
 }
 
-.input-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.input-group { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 
 input, button, select {
   background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
-  color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 0.95rem;
+  color: white; padding: 10px; border-radius: 10px; outline: none; font-size: 0.9rem;
 }
 
 button.primary { background: white; color: #000; font-weight: bold; border: none; flex-grow: 1; }
 
-#textColorPicker {
-  width: 35px; height: 35px; border-radius: 50%;
-  border: 2px solid white; background: none; padding: 0; cursor: pointer;
-}
-
+#textColorPicker { width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; background: none; }
 #bgInput { display: none; }
-.empty { opacity: 0; pointer-events: none; }
+.empty { opacity: 0.1; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -140,38 +135,38 @@ button.primary { background: white; color: #000; font-weight: bold; border: none
   <header>
     <div style="display:flex; align-items:center;">
       <button onclick="changeMonth(-1)">◀</button>
-      <span id="monthYear" style="font-weight: bold; margin: 0 10px; min-width: 110px; text-align: center;"></span>
+      <span id="monthYear" style="font-weight: bold; margin: 0 10px; min-width: 100px; text-align: center;"></span>
       <button onclick="changeMonth(1)">▶</button>
     </div>
-    <div style="display:flex; gap:15px; align-items:center;">
-      <select id="fontPicker" onchange="changeFont(this.value)" style="padding: 5px; width: 85px;">
+    <div style="display:flex; gap:12px; align-items:center;">
+      <select id="fontPicker" onchange="changeFont(this.value)" style="padding: 4px; font-size: 0.75rem;">
         <option value="sans-serif">Modern</option>
         <option value="serif">Klasik</option>
         <option value="cursive">Eğlenceli</option>
       </select>
       <input type="color" id="textColorPicker" oninput="changeTextColor(this.value)" value="#ffffff">
-      <label onclick="document.getElementById('bgInput').click()" style="cursor: pointer; font-size: 1.6rem;">🖼️</label>
+      <label onclick="document.getElementById('bgInput').click()" style="cursor: pointer; font-size: 1.4rem;">🖼️</label>
       <input type="file" id="bgInput" accept="image/*">
     </div>
   </header>
 
-  <div style="flex-grow:1; display:flex; flex-direction:column; overflow: hidden;">
-    <div style="display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:12px 0; font-size:0.85rem; font-weight: bold; background: rgba(0,0,0,0.3);">
-      <div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cts</div><div>Paz</div>
+  <div class="calendar-wrapper">
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:5px 0; font-size:0.75rem; font-weight: bold; opacity: 0.8;">
+      <div>Pt</div><div>Sa</div><div>Ça</div><div>Pe</div><div>Cu</div><div>Ct</div><div>Pa</div>
     </div>
     <div id="calendar"></div>
   </div>
 
   <div class="bottom-panel">
-    <div id="eventListDetail" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;"></div>
+    <div id="eventListDetail" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:5px;"></div>
     <div class="input-group">
-      <select id="isGrumpy" style="width: 70px;">
+      <select id="isGrumpy" style="width: 60px;">
         <option value="false">😸</option>
         <option value="true">😾</option>
       </select>
-      <input type="time" id="timeInput" style="width: 100px;">
+      <input type="time" id="timeInput" style="width: 85px;">
       <input type="text" id="textInput" placeholder="Notun..." style="flex-grow: 1;">
-      <button class="primary" onclick="saveEvent()">🐾 Ekle</button>
+      <button class="primary" onclick="saveEvent()">🐾</button>
     </div>
   </div>
 </div>
@@ -238,15 +233,11 @@ function renderCalendar(){
       if(events[dKey]) {
         events[dKey].slice(0, 3).forEach(ev => {
           const emoji = ev.isGrumpy === "true" ? "😾" : "😸";
-          eventHtml += `<span class="inner-event ${ev.completed ? 'completed' : ''}">${emoji} ${ev.text}</span>`;
+          eventHtml += `<span class="inner-event">${emoji} ${ev.text}</span>`;
         });
       }
       cell.innerHTML = `<div class="day-header">${dayNum}</div><div class="event-container">${eventHtml}</div>`;
-      cell.onclick = () => { 
-        selectedDate = dKey; 
-        updateEventList(); 
-        renderCalendar(); 
-      };
+      cell.onclick = () => { selectedDate = dKey; updateEventList(); renderCalendar(); };
     }
     calendar.appendChild(cell);
   }
@@ -258,9 +249,9 @@ function updateEventList(){
   if(events[selectedDate]){
     events[selectedDate].forEach((ev, i) => {
       const card = document.createElement("div");
-      card.style.cssText = "padding:10px; border-radius:12px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); display:flex; gap:10px; align-items:center; white-space:nowrap; color: inherit;";
+      card.style.cssText = "padding:8px; border-radius:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); display:flex; gap:8px; align-items:center; white-space:nowrap; font-size: 0.8rem; color: inherit;";
       const emoji = ev.isGrumpy === "true" ? (ev.completed ? "😼" : "😾") : (ev.completed ? "✅" : "😸");
-      card.innerHTML = `<span onclick="toggleComplete(${i})">${emoji} ${ev.time || ""} ${ev.text}</span> <b onclick="deleteEvent(${i})">✕</b>`;
+      card.innerHTML = `<span onclick="toggleComplete(${i})">${emoji} ${ev.text}</span> <b onclick="deleteEvent(${i})">✕</b>`;
       listDiv.appendChild(card);
     });
   }
@@ -268,12 +259,11 @@ function updateEventList(){
 
 function saveEvent(){
   const textInput = document.getElementById("textInput");
-  const text = textInput.value;
-  if(!selectedDate || !text) return;
+  if(!selectedDate || !textInput.value) return;
   events[selectedDate] = events[selectedDate] || [];
   events[selectedDate].push({
     time: document.getElementById("timeInput").value,
-    text: text,
+    text: textInput.value,
     isGrumpy: document.getElementById("isGrumpy").value,
     completed: false
   });
